@@ -1,0 +1,17 @@
+---
+- name: Perform lamp+nginx server setup
+  hosts: all
+  become: yes
+
+  vars:
+    host1: 192.168.255.101
+    host2: 192.168.255.102
+    user: vagrant
+    ssh_key_path: ../../vagrant/.ssh/vagrant_rsa
+
+  roles:
+    - apache
+    - php
+    - mysql
+    - wordpress
+    - nginx

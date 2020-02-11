@@ -1,0 +1,35 @@
+---
+- name: Perform haproxy server setup
+  hosts: all
+  become: yes
+
+  vars:
+    host: 192.168.255.103
+    user: vagrant
+    ssh_key_path: ../../vagrant/.ssh/vagrant_rsa
+
+  handlers:
+    - name: restart haproxy
+      service:
+        name: haproxy
+        state: restarted
+
+  tasks:
+    - name: Install haproxy
+      apt: 
+        name: haproxy 
+        state: present
+
+    - name: Ensure haproxy is started and enabled on boot
+      service: 
+        name: haproxy 
+        state: started 
+        enabled: yes
+
+    - name: Set haproxy config file
+      template:
+        src: haproxy.cfg
+        dest: /etc/haproxy/haproxy.cfg
+        mode: 0644
+        validate: haproxy -f %s -c -q
+      notify: restart haproxy
