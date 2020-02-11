@@ -1,0 +1,26 @@
+---
+- name: Install apache web server
+  apt:
+    name: apache2
+    update_cache: yes
+    cache_valid_time: 86400
+
+- name: Start apache, if not started
+  service:
+    name: apache2
+    state: started
+
+- name: Enable apache start on boot
+  service:
+    name: apache2
+    enabled: yes
+
+- name: Make apache listen port 8080
+  template:
+    src: ports.conf
+    dest: /etc/apache2/ports.conf
+
+- name: Make apache default port 8080
+  template:
+    src: 000-default.conf
+    dest: /etc/apache2/sites-available/000-default.conf

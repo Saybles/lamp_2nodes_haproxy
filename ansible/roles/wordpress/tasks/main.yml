@@ -1,0 +1,63 @@
+---
+- name: Create mysql wp database
+  mysql_db:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    name: "{{ wp_dbname }}"
+    state: present
+
+- name: Create mysql wp user
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    name: "{{ wp_username }}"
+    password: "{{ mysql_wpuser_password }}"
+    priv: "{{ wp_dbname }}.*:ALL"
+    state: present
+
+- name: Setup apache main config
+  template:
+    src: apache2.conf
+    dest: /etc/apache2/apache2.conf
+
+- name: Enable apache rewrite mod
+  apache2_module:
+    name: rewrite
+    state: present
+  notify: restart apache
+
+- name: Remove default apache page
+  file:
+    path: /var/www/html/index.html
+    state: absent
+
+- name: Install Wordpress
+  shell:
+    cmd: |
+      cd /tmp
+      wget https://wordpress.org/latest.tar.gz
+      tar xvfz latest.tar.gz
+      touch wordpress/.htaccess
+      chmod 660 wordpress/.htaccess
+      mkdir wordpress/wp-content/upgrade
+      cp -a wordpress/. /var/www/html
+
+- name: Setup wordpress config
+  template:
+    src: wp-config.php.j2 
+    dest: /var/www/html/wp-config.php
+
+- name: Setup wordpress access for /var/www/html
+  file:
+    dest: /var/www/html
+    owner: vagrant
+    group: www-data
+    recurse: yes
+
+- name: Setup wordpress write permissions for /var/www/html
+  shell:
+    cmd: |
+      find /var/www/html -type d -exec chmod g+s {} \;
+      chmod g+w /var/www/html/wp-content
+      chmod -R g+w /var/www/html/wp-content/themes
+      chmod -R g+w /var/www/html/wp-content/plugins

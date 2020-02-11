@@ -1,0 +1,35 @@
+---
+- name: Install mysql db
+  apt:
+    name: mysql-server
+    state: present
+    update_cache: yes
+    cache_valid_time: 86400
+
+- name: Start mysql if not started
+  service:
+    name: mysql
+    state: started
+
+- name: Enable mysql start on boot
+  service:
+    name: mysql
+    enabled: yes
+
+- block:
+  - name: Install pip
+    apt:
+      name: python-pip
+
+  - name: Install PyMySQL module for python
+    pip:
+      name: PyMySQL
+
+  - name: Set mysql root user
+    command: |
+      mysql --user root \
+            --connect-expired-password \
+            --execute="ALTER USER 'root'@'localhost' \
+                       IDENTIFIED WITH mysql_native_password \
+                       BY '{{ mysql_root_password }}';"
+    when: first_start == "true"
