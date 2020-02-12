@@ -30,6 +30,13 @@
     name: nginx
     enabled: yes
 
+- name: Create cache directory for apache
+  shell:
+    cmd: |
+      mkdir /var/cache/nginx
+      chown -R www-data:www-data /var/cache/nginx  
+
+
 - name: Enable nginx proxy
   file:
     src: /etc/nginx/sites-available/proxy.conf
